@@ -33,9 +33,11 @@ jobs:
           uv sync --extra cpu
 
       - name: Download model weights
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git lfs install
-          git clone https://${{ secrets.HF_TOKEN }}@huggingface.co/fishaudio/s1-mini checkpoints/s1-mini --depth 1
+          pip install "huggingface_hub[cli]"
+          huggingface-cli download fishaudio/s1-mini --local-dir checkpoints/s1-mini --token $HF_TOKEN
 
       - name: Run WebUI
         env:
