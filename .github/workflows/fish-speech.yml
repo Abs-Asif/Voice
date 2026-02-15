@@ -16,7 +16,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y portaudio19-dev libsox-dev ffmpeg
+          sudo apt-get install -y portaudio19-dev libsox-dev ffmpeg git-lfs
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -34,7 +34,8 @@ jobs:
 
       - name: Download model weights
         run: |
-          uv run huggingface-cli download fishaudio/openaudio-s1-mini --local-dir checkpoints/openaudio-s1-mini
+          git lfs install
+          git clone https://${{ secrets.HF_TOKEN }}@huggingface.co/fishaudio/s1-mini checkpoints/s1-mini --depth 1
 
       - name: Run WebUI
         env:
@@ -44,6 +45,6 @@ jobs:
           echo "Starting Fish Speech WebUI..."
           echo "Wait for the public Gradio URL to appear below."
           uv run python -m tools.run_webui \
-            --llama-checkpoint-path checkpoints/openaudio-s1-mini \
-            --decoder-checkpoint-path checkpoints/openaudio-s1-mini/codec.pth \
+            --llama-checkpoint-path checkpoints/s1-mini \
+            --decoder-checkpoint-path checkpoints/s1-mini/codec.pth \
             --decoder-config-name modded_dac_vq
