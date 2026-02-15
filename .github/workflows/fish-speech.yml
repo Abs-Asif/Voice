@@ -1,0 +1,49 @@
+name: Fish Speech GUI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-gui:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fish-speech
+        uses: actions/checkout@v4
+        with:
+          repository: fishaudio/fish-speech
+          fetch-depth: 1
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y portaudio19-dev libsox-dev ffmpeg
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: |
+          uv sync --extra cpu
+
+      - name: Download model weights
+        run: |
+          uv run huggingface-cli download fishaudio/openaudio-s1-mini --local-dir checkpoints/openaudio-s1-mini
+
+      - name: Run WebUI
+        env:
+          GRADIO_SHARE: "1"
+          GRADIO_SERVER_NAME: "0.0.0.0"
+        run: |
+          echo "Starting Fish Speech WebUI..."
+          echo "Wait for the public Gradio URL to appear below."
+          uv run python -m tools.run_webui \
+            --llama-checkpoint-path checkpoints/openaudio-s1-mini \
+            --decoder-checkpoint-path checkpoints/openaudio-s1-mini/codec.pth \
+            --decoder-config-name modded_dac_vq
